@@ -108,9 +108,6 @@ class Auth with ChangeNotifier {
     isSignIn = true;
     isGoogleUser = true;
 
-    var addr = await getUserAdress();
-    var nam = await getUserName();
-
     // We store the user info to the database inside "users" collection
     await FirebaseFirestore.instance
         .collection("users")
@@ -118,8 +115,8 @@ class Auth with ChangeNotifier {
         .set(
       {
         "userId": user.uid,
-        "name": nam ?? user.displayName,
-        "address": addr ?? "",
+        "name": user.displayName,
+        "address": "",
       },
     );
 

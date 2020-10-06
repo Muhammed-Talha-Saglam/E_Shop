@@ -22,6 +22,9 @@ class _ProfilePageState extends State<ProfilePage> {
     var provider = Provider.of<Auth>(context);
     var deviceSize = MediaQuery.of(context).size;
 
+    name = provider.userName;
+    address = provider.useraddress;
+
     return Scaffold(
       body: SingleChildScrollView(
         padding: EdgeInsets.all(10),
