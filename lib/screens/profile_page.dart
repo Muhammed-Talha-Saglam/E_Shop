@@ -7,6 +7,11 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 
 class ProfilePage extends StatefulWidget {
+  final name;
+  final address;
+
+  const ProfilePage({Key key, this.name, this.address}) : super(key: key);
+
   @override
   _ProfilePageState createState() => _ProfilePageState();
 }
@@ -18,12 +23,15 @@ class _ProfilePageState extends State<ProfilePage> {
   var address = "";
 
   @override
+  void initState() {
+    name = widget.name;
+    address = widget.address;
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     var provider = Provider.of<Auth>(context);
-    var deviceSize = MediaQuery.of(context).size;
-
-    name = provider.userName;
-    address = provider.useraddress;
 
     return Scaffold(
       body: SingleChildScrollView(
@@ -54,7 +62,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   buildFormHeader("Name"),
                   TextFormFieldWrappers(
                     child: TextFormField(
-                      initialValue: provider.userName,
+                      initialValue: name,
                       validator: (value) {
                         if (value.length < 3) {
                           return "User name must be at least 3 character long";
@@ -72,7 +80,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   buildFormHeader("Address"),
                   TextFormFieldWrappers(
                     child: TextFormField(
-                      initialValue: provider.useraddress,
+                      initialValue: address,
                       validator: (value) {
                         if (value.length < 10) {
                           return "User address must be at least 10 character long";
@@ -97,8 +105,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 if (formKey.currentState.validate()) {
                   await provider.updateUserName(name);
                   await provider.updateUserAddress(address);
-                  await provider.getUserName();
-                  await provider.getUserAdress();
+
                   showToast("Your profile is updated!");
                 }
               },

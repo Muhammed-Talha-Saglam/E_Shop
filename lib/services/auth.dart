@@ -38,8 +38,8 @@ class Auth with ChangeNotifier {
     try {
       var result = await auth.createUserWithEmailAndPassword(
           email: email, password: password);
+
       user = result.user;
-      isSignIn = true;
 
       // We store the user info to the database inside "users" collection
       await FirebaseFirestore.instance.collection("users").doc(user.uid).set(
@@ -47,6 +47,8 @@ class Auth with ChangeNotifier {
       );
       userName = name;
       useraddress = "";
+      isSignIn = true;
+
       notifyListeners();
       return true;
     } catch (e) {
@@ -67,11 +69,14 @@ class Auth with ChangeNotifier {
     try {
       var result = await auth.signInWithEmailAndPassword(
           email: email, password: password);
+
       user = result.user;
-      isSignIn = true;
+
       await getUserName();
       await getUserAdress();
+      isSignIn = true;
       notifyListeners();
+
       return true;
     } catch (e) {
       // If user gets error while logging in, we show the message inside the toast
@@ -104,24 +109,41 @@ class Auth with ChangeNotifier {
     googleIdToken = credential.idToken;
 
     var result = await auth.signInWithCredential(credential);
-    user = result.user;
-    isSignIn = true;
-    isGoogleUser = true;
 
-    // We store the user info to the database inside "users" collection
-    await FirebaseFirestore.instance
+    user = result.user;
+    isGoogleUser = true;
+    isSignIn = true;
+
+    var ins = await FirebaseFirestore.instance
         .collection("users")
         .doc(credential.idToken)
-        .set(
-      {
-        "userId": user.uid,
-        "name": user.displayName,
-        "address": "",
-      },
-    );
+        .get();
 
-    await getUserName();
-    await getUserAdress();
+    var data;
+    if (ins == null) {
+      data = null;
+    } else {
+      data = ins.data();
+    }
+
+    // this is not a new user
+    if (data != null && data["userId"] == user.uid) {
+      // no need to store to database again
+    } else {
+      // We store the user info to the database inside "users" collection
+      await FirebaseFirestore.instance
+          .collection("users")
+          .doc(credential.idToken)
+          .set(
+        {
+          "userId": user.uid,
+          "name": user.displayName,
+          "address": "",
+        },
+      );
+      userName = user.displayName;
+    }
+
     notifyListeners();
     return true;
   }
@@ -129,8 +151,8 @@ class Auth with ChangeNotifier {
   // Handle user sign out
   Future<void> googleSignOut() async {
     await auth.signOut().then((value) => {googleSignIn.signOut()});
-    isSignIn = false;
     isGoogleUser = false;
+    isSignIn = false;
     notifyListeners();
   }
 
@@ -142,13 +164,12 @@ class Auth with ChangeNotifier {
     var data = ins.data();
 
     if (data == null) {
-      userName = "no name";
       notifyListeners();
       return "no name";
     } else {
       userName = data["name"];
       notifyListeners();
-      return data["name"];
+      return userName;
     }
   }
 
@@ -159,6 +180,7 @@ class Auth with ChangeNotifier {
         .collection("users")
         .doc(docId)
         .update({"name": newName});
+    userName = newName;
   }
 
   Future getUserAdress() async {
@@ -169,16 +191,13 @@ class Auth with ChangeNotifier {
     var data = ins.data();
 
     // if such user doesn't exist, return null
-    if (ins == null ||
-        data == null ||
-        data["address"] == null ||
-        data["address"] == "") {
+    if (data == null || data["address"] == null || data["address"] == "") {
       notifyListeners();
-      return null;
+      return "no address";
     } else {
       useraddress = data["address"];
       notifyListeners();
-      return data["address"];
+      return useraddress;
     }
   }
 
@@ -189,5 +208,8 @@ class Auth with ChangeNotifier {
         .collection("users")
         .doc(docId)
         .update({"address": newAddress});
+
+    useraddress = newAddress;
+    notifyListeners();
   }
 }

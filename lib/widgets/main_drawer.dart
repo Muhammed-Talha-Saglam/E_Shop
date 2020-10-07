@@ -35,18 +35,18 @@ class _MainDrawerState extends State<MainDrawer> {
                   Padding(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    child: Text(provider.userName),
+                    child: Text(provider.userName ?? "no name"),
                   ),
                   Padding(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    child: Text(provider.user.email),
+                    child: Text(provider.user.email ?? " no email"),
                   ),
                   Padding(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
                     child: Text(
-                      provider.useraddress,
+                      provider.useraddress ?? "no address ",
                       style: TextStyle(fontSize: 11),
                     ),
                   ),
@@ -55,8 +55,11 @@ class _MainDrawerState extends State<MainDrawer> {
             ),
           ),
           ListTile(
-            onTap: () => Navigator.of(context)
-                .push(MaterialPageRoute(builder: (context) => ProfilePage())),
+            onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                builder: (context) => ProfilePage(
+                      name: provider.userName,
+                      address: provider.useraddress,
+                    ))),
             leading: Icon(
               Icons.person,
               color: Colors.black,
