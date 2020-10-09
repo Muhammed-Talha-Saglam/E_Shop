@@ -117,9 +117,17 @@ class _AuthScreenState extends State<AuthScreen> {
                       setState(() {
                         isLoading = true;
                       });
-                      await provider.handleGoogleSignIn();
-                      Navigator.pushReplacement(context,
-                          MaterialPageRoute(builder: (context) => MainPage()));
+                      var r = await provider.handleGoogleSignIn();
+                      if (r) {
+                        Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => MainPage()));
+                      } else {
+                        setState(() {
+                          isLoading = false;
+                        });
+                      }
                     },
                     child: GoogleSignInButton(),
                   ),

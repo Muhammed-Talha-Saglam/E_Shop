@@ -100,41 +100,56 @@ class Auth with ChangeNotifier {
 
   // User can log in with their Google account
   Future<bool> handleGoogleSignIn() async {
-    var googleSingInAccount = await googleSignIn.signIn();
-    var googleSignInAuth = await googleSingInAccount.authentication;
-    var credential = GoogleAuthProvider.credential(
-        idToken: googleSignInAuth.idToken,
-        accessToken: googleSignInAuth.accessToken);
+    var result;
+    try {
+      var googleSingInAccount = await googleSignIn.signIn();
+      var googleSignInAuth = await googleSingInAccount.authentication;
+      var credential = GoogleAuthProvider.credential(
+          idToken: googleSignInAuth.idToken,
+          accessToken: googleSignInAuth.accessToken);
 
-    googleIdToken = credential.idToken;
-
-    var result = await auth.signInWithCredential(credential);
+      result = await auth.signInWithCredential(credential);
+    } catch (e) {
+      print(e.toString());
+      Fluttertoast.showToast(
+        msg: e.toString(),
+        toastLength: Toast.LENGTH_LONG,
+        textColor: Colors.white,
+        gravity: ToastGravity.TOP,
+        backgroundColor: Colors.red,
+      );
+      return false;
+    }
 
     user = result.user;
     isGoogleUser = true;
     isSignIn = true;
+    googleIdToken = user.uid;
 
     var ins = await FirebaseFirestore.instance
         .collection("users")
-        .doc(credential.idToken)
+        .doc(user.uid)
         .get();
 
-    var data;
-    if (ins == null) {
-      data = null;
-    } else {
-      data = ins.data();
-    }
+    print("*************   ins    **********************");
+    print(ins);
+    print("*************   ins    **********************");
+
+    var data = ins.data();
+    print("*************   data    **********************");
+    print(data);
+    print("*************   data    **********************");
 
     // this is not a new user
     if (data != null && data["userId"] == user.uid) {
+      print(
+          "*************   // no need to store to database again    **********************");
+      await getUserName();
+      await getUserAdress();
       // no need to store to database again
     } else {
       // We store the user info to the database inside "users" collection
-      await FirebaseFirestore.instance
-          .collection("users")
-          .doc(credential.idToken)
-          .set(
+      await FirebaseFirestore.instance.collection("users").doc(user.uid).set(
         {
           "userId": user.uid,
           "name": user.displayName,
